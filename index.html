@@ -1,83 +1,579 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MR AI Stan</title>
-  <style>
-    body {
-      width: 320px;
-      padding: 16px;
-      font-family: system-ui, -apple-system, sans-serif;
-      background-color: #0f172a;
-      color: #f8fafc;
-      margin: 0;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="theme-color" content="#050b14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MR AI STAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cyan: #00f3ff;
+    --cyan-dim: rgba(0,243,255,0.35);
+    --gold: #ffb700;
+    --bg: #050b14;
+    --panel: rgba(6,20,32,0.72);
+    --panel-border: rgba(0,243,255,0.25);
+    --danger: #ff3b3b;
+    --text: #d7f7ff;
+    --text-dim: #6f9aab;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(ellipse at 50% 0%, #0a1c2a 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family:'Share Tech Mono', monospace;
+    overflow-x:hidden;
+  }
+
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,243,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,243,255,0.04) 1px, transparent 1px);
+    background-size: 34px 34px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .app-shell{
+    position:relative; z-index:1;
+    max-width:960px; margin:0 auto;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    padding: 16px 18px 0;
+  }
+
+  /* ---------- HEADER ---------- */
+  header.brand-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; padding-bottom:14px;
+    border-bottom:1px solid var(--panel-border);
+  }
+
+  .brand{
+    display:flex; align-items:center; gap:12px;
+  }
+
+  .brand-logo{
+    width:34px; height:34px; border-radius:50%;
+    border:2px solid var(--cyan);
+    box-shadow: 0 0 10px var(--cyan), inset 0 0 8px var(--cyan);
+    position:relative;
+    animation: spin 6s linear infinite;
+  }
+  .brand-logo::after{
+    content:""; position:absolute; inset:8px;
+    border-radius:50%; background: var(--gold);
+    box-shadow: 0 0 8px var(--gold);
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .brand-title{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900; letter-spacing:2px;
+    font-size:19px; color:var(--cyan);
+    text-shadow:0 0 10px var(--cyan-dim);
+  }
+  .brand-subtitle{
+    font-size:10px; letter-spacing:3px; color:var(--text-dim);
+  }
+
+  .protocol-toggle{
+    display:flex; align-items:center; gap:8px;
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    padding:6px 12px; border-radius:20px;
+    cursor:pointer; user-select:none;
+    font-size:11px; letter-spacing:1px;
+    transition: box-shadow .2s ease;
+  }
+  .protocol-toggle:hover{ box-shadow:0 0 12px var(--cyan-dim); }
+  .protocol-toggle .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--gold); box-shadow:0 0 6px var(--gold);
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{ 0%,100%{ opacity:1;} 50%{ opacity:.35; } }
+
+  /* ---------- MAIN GRID ---------- */
+  main.layout-grid{
+    flex:1;
+    display:grid;
+    grid-template-columns: 190px 1fr;
+    gap:16px;
+    padding: 18px 0;
+  }
+
+  .panel{
+    background: var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px;
+    backdrop-filter: blur(6px);
+  }
+
+  .panel-title{
+    font-family:'Orbitron', sans-serif;
+    font-size:10px; letter-spacing:2px;
+    color: var(--gold);
+    margin:0 0 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .panel-title::before{
+    content:""; width:6px; height:6px; background:var(--gold);
+    box-shadow:0 0 6px var(--gold); display:inline-block;
+  }
+
+  /* ---------- DIAGNOSTICS ---------- */
+  .diagnostics-panel{ display:flex; flex-direction:column; gap:16px; }
+
+  .metric{ margin-bottom:2px; }
+  .metric-label{
+    display:flex; justify-content:space-between;
+    font-size:10px; color:var(--text-dim); margin-bottom:4px;
+  }
+  .metric-value{ color:var(--cyan); }
+  .metric-bar{
+    height:5px; background:rgba(255,255,255,0.06);
+    border-radius:3px; overflow:hidden;
+  }
+  .metric-bar-fill{
+    height:100%; background:linear-gradient(90deg, var(--cyan), var(--gold));
+    box-shadow:0 0 6px var(--cyan-dim);
+    width:0%; transition: width .8s ease;
+  }
+
+  .status-row{
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; padding-top:6px;
+    border-top:1px solid var(--panel-border);
+  }
+  .status-led{
+    width:9px; height:9px; border-radius:50%;
+    background: var(--danger); box-shadow:0 0 6px var(--danger);
+  }
+  .status-led.online{
+    background: #21ffb0; box-shadow:0 0 8px #21ffb0;
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+
+  .active-protocol-readout{
+    font-size:10px; color:var(--text-dim); margin-top:8px;
+  }
+  .active-protocol-readout span{ color:var(--cyan); }
+
+  /* ---------- CORE STAGE ---------- */
+  .core-stage{
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:14px; min-height:190px;
+    position:relative;
+  }
+
+  .reactor{
+    width:120px; height:120px; position:relative;
+  }
+  .reactor .ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:2px solid var(--cyan-dim);
+  }
+  .reactor .ring.r1{ animation: spin 8s linear infinite; border-top-color:var(--cyan); }
+  .reactor .ring.r2{ inset:14px; animation: spin 5s linear infinite reverse; border-right-color:var(--gold); border-color:transparent; border-right:2px solid var(--gold); }
+  .reactor .ring.r3{ inset:28px; border-color:var(--cyan-dim); }
+  .reactor .core{
+    position:absolute; inset:40px; border-radius:50%;
+    background: radial-gradient(circle, #ffffff 0%, var(--cyan) 45%, transparent 75%);
+    box-shadow: 0 0 25px 6px var(--cyan-dim);
+    animation: breathe 2.2s ease-in-out infinite;
+  }
+  @keyframes breathe{ 0%,100%{ transform:scale(1); opacity:.9;} 50%{ transform:scale(1.08); opacity:1; } }
+
+  .waveform{
+    display:flex; align-items:flex-end; gap:3px; height:22px;
+    opacity:.35; transition:opacity .3s ease;
+  }
+  .waveform.active{ opacity:1; }
+  .waveform span{
+    width:3px; background: var(--cyan); border-radius:2px;
+    animation: bar 1s ease-in-out infinite;
+  }
+  .waveform span:nth-child(1){ animation-delay:0s; }
+  .waveform span:nth-child(2){ animation-delay:.1s; }
+  .waveform span:nth-child(3){ animation-delay:.2s; }
+  .waveform span:nth-child(4){ animation-delay:.3s; }
+  .waveform span:nth-child(5){ animation-delay:.4s; }
+  .waveform span:nth-child(6){ animation-delay:.3s; }
+  .waveform span:nth-child(7){ animation-delay:.2s; }
+  .waveform span:nth-child(8){ animation-delay:.1s; }
+  @keyframes bar{ 0%,100%{ height:4px;} 50%{ height:22px;} }
+
+  .core-caption{
+    font-size:10px; letter-spacing:2px; color:var(--text-dim);
+  }
+
+  /* ---------- CHAT PANEL ---------- */
+  .chat-panel{
+    grid-column: 1 / -1;
+    display:flex; flex-direction:column;
+    height: 46vh; min-height:280px;
+  }
+
+  .chat-log{
+    flex:1; overflow-y:auto;
+    display:flex; flex-direction:column; gap:10px;
+    padding-right:4px; margin-bottom:12px;
+  }
+  .chat-log::-webkit-scrollbar{ width:5px; }
+  .chat-log::-webkit-scrollbar-thumb{ background:var(--cyan-dim); border-radius:3px; }
+
+  .bubble{
+    max-width:80%; padding:9px 13px; border-radius:8px;
+    font-size:13px; line-height:1.5;
+    animation: fade-in .25s ease;
+  }
+  @keyframes fade-in{ from{ opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .bubble.user{
+    align-self:flex-end;
+    background: rgba(255,183,0,0.10);
+    border:1px solid rgba(255,183,0,0.35);
+    color:#ffe4ad;
+  }
+  .bubble.model{
+    align-self:flex-start;
+    background: rgba(0,243,255,0.08);
+    border:1px solid var(--panel-border);
+    color:var(--text);
+  }
+  .bubble.error{
+    align-self:flex-start;
+    background: rgba(255,59,59,0.1);
+    border:1px solid rgba(255,59,59,0.4);
+    color:#ffb0b0;
+  }
+  .bubble .tag{
+    display:block; font-size:9px; letter-spacing:2px;
+    color:var(--text-dim); margin-bottom:4px;
+  }
+
+  .chat-input-row{
+    display:flex; gap:8px;
+    border-top:1px solid var(--panel-border);
+    padding-top:12px;
+  }
+
+  #chat-input{
+    flex:1; background: rgba(255,255,255,0.03);
+    border:1px solid var(--panel-border);
+    border-radius:6px; padding:11px 13px;
+    color:var(--text); font-family:'Share Tech Mono', monospace;
+    font-size:13px; outline:none;
+    transition: box-shadow .2s ease, border-color .2s ease;
+  }
+  #chat-input:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 12px var(--cyan-dim);
+  }
+  #chat-input::placeholder{ color:var(--text-dim); }
+
+  #send-btn{
+    background: linear-gradient(135deg, var(--cyan), #0088a3);
+    border:none; border-radius:6px; padding:0 20px;
+    color:#001820; font-weight:700; letter-spacing:1px;
+    font-family:'Orbitron', sans-serif; font-size:11px;
+    cursor:pointer; transition: filter .2s ease, transform .1s ease;
+  }
+  #send-btn:hover{ filter:brightness(1.15); }
+  #send-btn:active{ transform: scale(0.96); }
+  #send-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  footer.foot{
+    text-align:center; font-size:9px; color:var(--text-dim);
+    letter-spacing:2px; padding:12px 0 16px;
+  }
+
+  /* ---------- RESPONSIVE / EXTENSION POPUP ---------- */
+  @media (max-width: 640px){
+    .app-shell{ padding:10px 10px 0; }
+    main.layout-grid{
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
     }
-    h2 {
-      margin-top: 0;
-      color: #38bdf8;
-      font-size: 1.1rem;
+    .diagnostics-panel{
+      flex-direction:row; flex-wrap:wrap; gap:12px;
     }
-    textarea {
-      width: 100%;
-      height: 80px;
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: #fff;
-      border-radius: 8px;
-      padding: 8px;
-      box-sizing: border-box;
-      resize: none;
-    }
-    button {
-      margin-top: 8px;
-      width: 100%;
-      padding: 10px;
-      background: #0284c7;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover { background: #0369a1; }
-    #response {
-      margin-top: 12px;
-      padding: 8px;
-      background: #1e293b;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      min-height: 40px;
-      white-space: pre-wrap;
-    }
-  </style>
+    .diagnostics-panel .metric{ flex:1 1 45%; }
+    .chat-panel{ height:52vh; }
+  }
+
+  /* Chrome extension popup width */
+  @media (max-width: 420px){
+    body{ width:380px; }
+    .brand-title{ font-size:15px; }
+    .reactor{ width:90px; height:90px; }
+    .chat-panel{ height:340px; min-height:240px; }
+  }
+</style>
 </head>
 <body>
-  <h2>⚡ MR AI Stan Pro</h2>
-  <textarea id="userInput" placeholder="Andika maelekezo au swali..."></textarea>
-  <button id="sendBtn">Tuma Kazi</button>
-  <div id="response">Tayari...</div>
 
-  <script>
-    document.getElementById('sendBtn').addEventListener('click', async () => {
-      const prompt = document.getElementById('userInput').value;
-      const responseDiv = document.getElementById('response');
-      
-      if (!prompt.trim()) return;
-      responseDiv.textContent = "Inaprosesi...";
+<div class="app-shell">
 
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
-        });
-        const data = await res.json();
-        responseDiv.textContent = data.reply || "Hakuna majibu.";
-      } catch (err) {
-        responseDiv.textContent = "Error: Backend haipatikani kwenye http://127.0.0.1:8000";
+  <header class="brand-bar">
+    <div class="brand">
+      <div class="brand-logo"></div>
+      <div>
+        <div class="brand-title">MR AI STAN</div>
+        <div class="brand-subtitle">HOLOGRAPHIC INTERFACE // HATUA 1</div>
+      </div>
+    </div>
+    <div class="protocol-toggle" id="protocol-toggle" title="Badilisha protocol">
+      <span class="dot"></span>
+      <span id="protocol-label">STAN MODE</span>
+    </div>
+  </header>
+
+  <main class="layout-grid">
+
+    <aside class="panel diagnostics-panel">
+      <div class="panel-title">DIAGNOSTICS</div>
+
+      <div class="metric">
+        <div class="metric-label"><span>CPU LOAD</span><span class="metric-value" id="cpu-value">--%</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="cpu-bar"></div></div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label"><span>MEMORY</span><span class="metric-value" id="mem-value">--%</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="mem-bar"></div></div>
+      </div>
+
+      <div class="metric">
+        <div class="metric-label"><span>NETWORK</span><span class="metric-value" id="net-value">--%</span></div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="net-bar"></div></div>
+      </div>
+
+      <div class="status-row">
+        <span class="status-led" id="status-led"></span>
+        <span id="status-text">CONNECTING...</span>
+      </div>
+
+      <div class="active-protocol-readout">
+        ACTIVE PROTOCOL: <span id="protocol-readout">STAN</span>
+      </div>
+    </aside>
+
+    <section class="panel core-stage">
+      <div class="reactor">
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
+        <div class="ring r3"></div>
+        <div class="core"></div>
+      </div>
+      <div class="waveform" id="waveform">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="core-caption" id="core-caption">STANDBY</div>
+    </section>
+
+    <section class="panel chat-panel">
+      <div class="panel-title">COMMS LINK</div>
+      <div class="chat-log" id="chat-log"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Andika ujumbe wako, Futie..." autocomplete="off" />
+        <button id="send-btn">TUMA</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">MR AI STAN // POWERED BY GEMINI // FUTIE SYSTEMS</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const DEFAULT_API_BASE = "http://localhost:5000";
+  const API_BASE = (location.protocol === "chrome-extension:" || location.protocol === "file:")
+    ? DEFAULT_API_BASE
+    : location.origin;
+
+  const chatLog = document.getElementById("chat-log");
+  const chatInput = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-btn");
+  const waveform = document.getElementById("waveform");
+  const coreCaption = document.getElementById("core-caption");
+
+  const statusLed = document.getElementById("status-led");
+  const statusText = document.getElementById("status-text");
+  const protocolReadout = document.getElementById("protocol-readout");
+  const protocolToggle = document.getElementById("protocol-toggle");
+  const protocolLabel = document.getElementById("protocol-label");
+
+  const cpuValue = document.getElementById("cpu-value");
+  const cpuBar = document.getElementById("cpu-bar");
+  const memValue = document.getElementById("mem-value");
+  const memBar = document.getElementById("mem-bar");
+  const netValue = document.getElementById("net-value");
+  const netBar = document.getElementById("net-bar");
+
+  let currentProtocol = "STAN";
+
+  // ---------------- helpers ----------------
+
+  function addBubble(role, text) {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble " + role;
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = role === "user" ? "FUTIE" : (role === "error" ? "SYSTEM ERROR" : "STAN");
+    const body = document.createElement("div");
+    body.textContent = text;
+    bubble.appendChild(tag);
+    bubble.appendChild(body);
+    chatLog.appendChild(bubble);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function setThinking(isThinking) {
+    waveform.classList.toggle("active", isThinking);
+    coreCaption.textContent = isThinking ? "PROCESSING..." : "STANDBY";
+    sendBtn.disabled = isThinking;
+    chatInput.disabled = isThinking;
+  }
+
+  function setOnline(isOnline) {
+    statusLed.classList.toggle("online", isOnline);
+    statusText.textContent = isOnline ? "SYSTEMS ONLINE" : "OFFLINE";
+  }
+
+  // ---------------- diagnostics simulation ----------------
+
+  let cpu = 22, mem = 38, net = 65;
+
+  function drift(value, min, max, step) {
+    value += (Math.random() - 0.5) * step;
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function tickDiagnostics() {
+    cpu = drift(cpu, 8, 92, 14);
+    mem = drift(mem, 15, 88, 10);
+    net = drift(net, 40, 99, 12);
+
+    cpuValue.textContent = Math.round(cpu) + "%";
+    memValue.textContent = Math.round(mem) + "%";
+    netValue.textContent = Math.round(net) + "%";
+    cpuBar.style.width = cpu + "%";
+    memBar.style.width = mem + "%";
+    netBar.style.width = net + "%";
+  }
+
+  setInterval(tickDiagnostics, 2200);
+  tickDiagnostics();
+
+  // ---------------- protocol toggle ----------------
+
+  protocolToggle.addEventListener("click", async function () {
+    currentProtocol = currentProtocol === "STAN" ? "J.A.R.V.I.S" : "STAN";
+    protocolLabel.textContent = currentProtocol + " MODE";
+    protocolReadout.textContent = currentProtocol;
+
+    try {
+      await fetch(API_BASE + "/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active_protocol: currentProtocol }),
+      });
+    } catch (err) {
+      // server haipatikani, endelea local-only
+    }
+  });
+
+  // ---------------- boot: status + history ----------------
+
+  async function boot() {
+    try {
+      const res = await fetch(API_BASE + "/status");
+      if (!res.ok) throw new Error("status not ok");
+      const data = await res.json();
+      setOnline(true);
+      if (data.active_protocol) {
+        currentProtocol = data.active_protocol;
+        protocolLabel.textContent = currentProtocol + " MODE";
+        protocolReadout.textContent = currentProtocol;
       }
-    });
-  </script>
+    } catch (err) {
+      setOnline(false);
+      addBubble("error", "Imeshindwa kuunganishwa na server (" + API_BASE + "). Hakikisha server.py inaendesha.");
+    }
+
+    try {
+      const res = await fetch(API_BASE + "/history");
+      if (res.ok) {
+        const history = await res.json();
+        history.forEach(function (item) {
+          addBubble(item.role === "user" ? "user" : "model", item.message);
+        });
+      }
+    } catch (err) {
+      // hakuna historia bado, endelea kimya
+    }
+  }
+
+  boot();
+
+  // ---------------- send message ----------------
+
+  async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    addBubble("user", message);
+    chatInput.value = "";
+    setThinking(true);
+
+    try {
+      const res = await fetch(API_BASE + "/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        addBubble("error", data.error || "Hitilafu isiyojulikana kutoka server.");
+      } else {
+        addBubble("model", data.reply);
+      }
+      setOnline(true);
+    } catch (err) {
+      addBubble("error", "Imeshindwa kuwasiliana na server. Angalia kama server.py inaendesha kwenye " + API_BASE);
+      setOnline(false);
+    } finally {
+      setThinking(false);
+      chatInput.focus();
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  chatInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") sendMessage();
+  });
+
+})();
+</script>
+
 </body>
 </html>
