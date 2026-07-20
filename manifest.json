@@ -1,21 +1,28 @@
 {
   "manifest_version": 3,
-  "name": "MR AI Stan Assistant",
+  "name": "MR AI STAN",
+  "short_name": "STAN",
   "version": "1.0.0",
-  "description": "Chrome Extension connected to MR AI local backend engine.",
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "http://127.0.0.1:8000/*"
-  ],
+  "description": "MR AI STAN — Msaidizi wako wa kibinafsi wa AI mwenye mtindo wa J.A.R.V.I.S, unaotumia Google Gemini API na SQLite memory system.",
   "action": {
     "default_popup": "index.html",
+    "default_title": "MR AI STAN",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     }
-  }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "http://127.0.0.1:5000/*"
+  ]
 }
